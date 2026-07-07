@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Insurance Market Segments — Study the Coverage Map</title>
+<style>
+  :root{
+    --forest:#00693E; --dark:#13312A; --mint:#F1F7ED; --mintbrd:#DDE9D5;
+    --lightgreen:#9BC46F; --gray:#5C6670; --body:#263A30; --white:#fff;
+    --ok:#1E7A45; --okbg:#E4F1DC; --bad:#B23A48; --badbg:#F7E4E6; --shadow:0 2px 10px rgba(19,49,42,.10);
+    --serif:Georgia,'Times New Roman',serif;
+    --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:var(--sans);color:var(--body);background:#F6F9F4;line-height:1.45;
+       -webkit-font-smoothing:antialiased;padding:18px}
+  .wrap{max-width:920px;margin:0 auto}
+
+  .eyebrow{font-size:12px;letter-spacing:2.5px;font-weight:700;color:var(--forest);text-transform:uppercase;margin:0 0 6px}
+  h1{font-family:var(--serif);font-size:clamp(26px,4vw,38px);color:var(--forest);margin:0 0 6px;font-weight:700;line-height:1.05}
+  .sub{color:var(--gray);font-size:15px;margin:0 0 18px;max-width:64ch}
+
+  .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+  .tab{flex:1 1 200px;min-width:0;display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid var(--mintbrd);
+       background:var(--white);border-radius:12px;cursor:pointer;text-align:left;font-family:var(--sans);color:var(--body);
+       transition:border-color .15s,background .15s}
+  .tab:hover{border-color:var(--lightgreen)}
+  .tab[aria-selected="true"]{background:var(--forest);border-color:var(--forest);color:var(--white)}
+  .tab .num{width:26px;height:26px;flex:none;border-radius:50%;background:var(--mint);color:var(--forest);
+       display:grid;place-items:center;font-weight:700;font-size:13px}
+  .tab[aria-selected="true"] .num{background:var(--lightgreen);color:var(--dark)}
+  .tab .tt{font-family:var(--serif);font-weight:700;font-size:15px;line-height:1.1}
+  .tab .done{margin-left:auto;font-size:14px;opacity:0}
+  .tab.complete .done{opacity:1}
+
+  .panel{display:none;background:var(--white);border:1px solid var(--mintbrd);border-radius:16px;
+         padding:22px;box-shadow:var(--shadow)}
+  .panel.active{display:block;animation:fade .25s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+  @media (prefers-reduced-motion:reduce){.panel.active{animation:none}}
+  .panel h2{font-family:var(--serif);font-size:22px;color:var(--forest);margin:0 0 4px}
+  .panel .lead{color:var(--gray);font-size:14px;margin:0 0 16px}
+  .instr{font-size:13px;color:var(--forest);font-weight:600;margin:0 0 14px}
+
+  /* activity 1: two truths & a lie */
+  .roundhead{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .segbadge{font-family:var(--serif);font-weight:700;color:var(--white);background:var(--forest);
+       padding:6px 14px;border-radius:999px;font-size:15px}
+  .qcount{font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray);font-weight:700}
+  .statements{display:flex;flex-direction:column;gap:10px}
+  .statement{display:flex;gap:12px;align-items:flex-start;text-align:left;border:1px solid var(--mintbrd);
+       background:var(--white);border-radius:12px;padding:14px 16px;font-size:14.5px;cursor:pointer;
+       font-family:var(--sans);color:var(--body);transition:border-color .15s,background .15s;line-height:1.4}
+  .statement:hover:not(:disabled){border-color:var(--lightgreen)}
+  .statement:disabled{cursor:default}
+  .statement .mk{width:22px;height:22px;flex:none;border-radius:50%;border:2px solid var(--mintbrd);margin-top:1px;
+       display:grid;place-items:center;font-size:13px;font-weight:700;color:transparent}
+  .statement.lie-revealed{background:var(--okbg);border-color:var(--ok);color:#14532b}
+  .statement.lie-revealed .mk{border-color:var(--ok);background:var(--ok);color:#fff}
+  .statement.bad{background:var(--badbg);border-color:var(--bad);color:#7a2530}
+  .statement.bad .mk{border-color:var(--bad);background:var(--bad);color:#fff}
+
+  /* activity 2: vignette */
+  .vig{background:var(--mint);border:1px solid var(--mintbrd);border-radius:12px;padding:18px 20px;margin-bottom:16px}
+  .vig .person{font-family:var(--serif);font-size:19px;color:var(--dark);line-height:1.3}
+  .opts{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+  @media(max-width:720px){.opts{grid-template-columns:repeat(2,1fr)}}
+  .opt{border:1px solid var(--mintbrd);background:var(--white);border-radius:10px;padding:12px 10px;font-size:13.5px;
+       font-weight:600;cursor:pointer;font-family:var(--sans);color:var(--body);text-align:center;transition:border-color .15s,background .15s}
+  .opt:hover:not(:disabled){border-color:var(--lightgreen)}
+  .opt:disabled{cursor:default}
+  .opt.ok{background:var(--okbg);border-color:var(--ok);color:var(--ok)}
+  .opt.bad{background:var(--badbg);border-color:var(--bad);color:var(--bad)}
+
+  /* activity 3: ladder */
+  .scalelbl{display:flex;justify-content:space-between;font-size:11.5px;letter-spacing:1px;text-transform:uppercase;
+         color:var(--gray);font-weight:700;margin-bottom:10px;padding:0 4px}
+  .ladder{display:flex;flex-direction:column;gap:10px;margin-bottom:4px}
+  .rung{display:flex;align-items:center;gap:14px;border:1px solid var(--mintbrd);background:var(--white);border-radius:12px;
+        padding:13px 16px;cursor:pointer;font-family:var(--sans);transition:border-color .15s,background .15s}
+  .rung:hover:not(.locked){border-color:var(--lightgreen)}
+  .rung.sel{border-color:var(--forest);background:var(--mint)}
+  .rung.ok{background:var(--okbg);border-color:var(--ok)}
+  .rung.bad{background:var(--badbg);border-color:var(--bad)}
+  .rung .order{width:30px;height:30px;flex:none;border-radius:50%;background:var(--mint);color:var(--forest);
+        display:grid;place-items:center;font-weight:700}
+  .rung.sel .order,.rung.ok .order{background:var(--forest);color:#fff}
+  .rung .name{font-family:var(--serif);font-weight:700;font-size:16px;color:var(--dark)}
+  .rung .hint{font-size:12.5px;color:var(--gray)}
+
+  /* visual ladder + drag-and-drop */
+  .ladderlayout{display:flex;gap:22px;flex-wrap:wrap;align-items:flex-start}
+  .ladderside{flex:1 1 400px;min-width:290px}
+  .rungcap{font-size:11.5px;letter-spacing:1px;text-transform:uppercase;font-weight:700;color:var(--gray);padding:0 28px;margin:2px 0}
+  .rungcap.bot{text-align:right}
+  .ladderviz{position:relative;padding:6px 24px}
+  .ladderviz::before,.ladderviz::after{content:'';position:absolute;top:2px;bottom:2px;width:9px;background:var(--dark);border-radius:5px}
+  .ladderviz::before{left:7px}.ladderviz::after{right:7px}
+  .rungslot{position:relative;z-index:1;min-height:64px;margin:11px 0;border:2px dashed var(--mintbrd);border-radius:11px;
+       background:#FBFDFA;display:flex;align-items:center;justify-content:center;padding:7px;transition:border-color .12s,background .12s}
+  .rungslot.hot{border-color:var(--forest);background:var(--mint)}
+  .rungslot.ok{border-style:solid;border-color:var(--ok);background:var(--okbg)}
+  .rungslot.bad{border-style:solid;border-color:var(--bad);background:var(--badbg)}
+  .rungslot .empty{color:#9aa6a0;font-size:12.5px;font-weight:600;pointer-events:none}
+  .bank2{flex:1 1 250px;min-width:230px;display:flex;flex-direction:column;gap:10px;padding:14px;
+       background:var(--mint);border:1px dashed var(--mintbrd);border-radius:12px}
+  .bank2 .lbl{font-size:11px;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:var(--gray)}
+  .paycard{width:100%;display:flex;flex-direction:column;gap:1px;background:var(--white);border:1px solid var(--mintbrd);
+       border-radius:9px;padding:10px 13px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none;transition:border-color .12s}
+  .paycard:hover{border-color:var(--lightgreen)}
+  .paycard.dragging{opacity:.32}
+  .paycard .pcname{font-family:var(--serif);font-weight:700;font-size:15px;color:var(--dark)}
+  .paycard .pchint{font-size:12px;color:var(--gray)}
+  .dragclone{position:fixed;z-index:9999;pointer-events:none;box-shadow:0 10px 24px rgba(19,49,42,.30);
+       transform:rotate(-1.5deg);opacity:.97;cursor:grabbing}
+
+  /* relative-rate scale reveal */
+  #p3phase2{margin-top:20px;padding-top:20px;border-top:1px solid var(--mintbrd)}
+  .revealnote{background:var(--dark);color:#fff;border-radius:12px;padding:14px 18px;font-size:14px;margin-bottom:18px}
+  .revealnote b{color:var(--lightgreen)}
+  .scalewrap{position:relative;margin:6px 0 6px}
+  .barrow{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+  .barrow .blabel{width:150px;flex:none;text-align:right;font-size:13px}
+  .barrow .blabel .bn{font-family:var(--serif);font-weight:700;color:var(--dark);display:block;font-size:14px}
+  .barrow .blabel .bd{color:var(--gray);font-size:11.5px}
+  .bartrack{flex:1;background:#EEF4EA;border-radius:6px;height:26px;position:relative;overflow:hidden}
+  .barfill{height:100%;width:0;border-radius:6px;transition:width .9s cubic-bezier(.2,.7,.2,1)}
+  @media (prefers-reduced-motion:reduce){.barfill{transition:none}}
+  .barval{position:absolute;top:50%;transform:translateY(-50%);left:10px;font-size:12px;font-weight:700;color:#fff}
+  .benchmark{position:absolute;top:-4px;bottom:18px;width:0;border-left:2px dashed var(--forest)}
+  .benchtag{position:absolute;top:-20px;transform:translateX(-50%);font-size:10.5px;font-weight:700;
+       color:var(--forest);white-space:nowrap;letter-spacing:.5px}
+  .caveat{font-size:11px;font-style:italic;color:var(--gray);margin:10px 0 0}
+  .followups{margin-top:20px}
+  .fq{font-family:var(--serif);font-size:15px;color:var(--dark);font-weight:700;margin:16px 0 9px}
+  .opts3{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+  @media(max-width:560px){.opts3{grid-template-columns:1fr}}
+
+  .feedback{margin-top:16px;padding:13px 16px;border-radius:10px;font-size:14px;display:none}
+  .feedback.show{display:block}
+  .feedback.good{background:var(--okbg);color:#14532b;border:1px solid var(--ok)}
+  .feedback.bad{background:var(--badbg);color:#7a2530;border:1px solid var(--bad)}
+  .feedback b{font-weight:700}
+  .controls{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;align-items:center}
+  .btn{border:none;border-radius:10px;padding:11px 20px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--sans)}
+  .btn.primary{background:var(--forest);color:#fff}
+  .btn.primary:hover{background:#00563a}
+  .btn.ghost{background:transparent;color:var(--forest);border:1px solid var(--mintbrd)}
+  .btn.ghost:hover{border-color:var(--forest)}
+  .btn:disabled{opacity:.45;cursor:default}
+  .score{margin-left:auto;font-size:13px;color:var(--gray);font-weight:600}
+
+  .banner{display:none;margin-top:18px;background:var(--dark);color:#fff;border-radius:14px;padding:20px 22px}
+  .banner.show{display:block}
+  .banner h3{font-family:var(--serif);margin:0 0 6px;font-size:20px}
+  .banner p{margin:0;color:var(--lightgreen);font-size:14px}
+  .foot{text-align:center;color:var(--gray);font-size:12px;margin-top:20px}
+  :focus-visible{outline:3px solid var(--lightgreen);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Insurance Market Segments</p>
+  <h1>Study the Coverage Map</h1>
+  <p class="sub">Insurance coverage activity: spot the false claim, match people to their insurer, and rank who pays what.</p>
+
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" aria-selected="true" data-tab="0"><span class="num">1</span><span class="tt">Two Truths &amp; a Lie</span><span class="done">✓</span></button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="1"><span class="num">2</span><span class="tt">Who Covers This Person?</span><span class="done">✓</span></button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="2"><span class="num">3</span><span class="tt">The Payment Ladder</span><span class="done">✓</span></button>
+  </div>
+
+  <!-- ACTIVITY 1: TWO TRUTHS & A LIE -->
+  <section class="panel active" data-panel="0" role="tabpanel" aria-label="Two Truths and a Lie">
+    <h2>Two Truths &amp; a Lie</h2>
+    <p class="instr">Each round makes three claims about one segment. Two are true — tap the one that's <b>false</b>.</p>
+    <div class="roundhead"><span class="segbadge" id="ttlSeg"></span><span class="qcount" id="ttlCount"></span></div>
+    <div class="statements" id="statements"></div>
+    <div class="feedback" id="fb1"></div>
+    <div class="controls">
+      <button class="btn primary" id="next1" disabled>Next round</button>
+      <button class="btn ghost" id="reset1">Start over</button>
+      <span class="score" id="score1"></span>
+    </div>
+  </section>
+
+  <!-- ACTIVITY 2: VIGNETTES -->
+  <section class="panel" data-panel="1" role="tabpanel" aria-label="Who Covers This Person?">
+    <h2>Who Covers This Person?</h2>
+    <p class="qcount" id="qcount"></p>
+    <div class="vig"><div class="person" id="person"></div></div>
+    <div class="opts" id="opts"></div>
+    <div class="feedback" id="fb2"></div>
+    <div class="controls">
+      <button class="btn primary" id="next2" disabled>Next person</button>
+      <button class="btn ghost" id="reset2">Start over</button>
+      <span class="score" id="score2"></span>
+    </div>
+  </section>
+
+  <!-- ACTIVITY 3: PAYMENT LADDER -->
+  <section class="panel" data-panel="2" role="tabpanel" aria-label="The Payment Ladder">
+    <h2>The Payment Ladder</h2>
+
+    <div id="p3phase1">
+      <p class="instr">Drag each payer onto the ladder — <b>lowest</b> reimbursement at the bottom, <b>highest</b> at the top.</p>
+      <div class="ladderlayout">
+        <div class="ladderside">
+          <div class="rungcap top">↑ &nbsp;Pays the most</div>
+          <div class="ladderviz" id="ladderviz">
+            <div class="rungslot" data-slot="0"><span class="empty">Drop a payer here</span></div>
+            <div class="rungslot" data-slot="1"><span class="empty">Drop a payer here</span></div>
+            <div class="rungslot" data-slot="2"><span class="empty">Drop a payer here</span></div>
+            <div class="rungslot" data-slot="3"><span class="empty">Drop a payer here</span></div>
+          </div>
+          <div class="rungcap bot">↓ &nbsp;Pays the least</div>
+        </div>
+        <div class="bank2" id="payBank"><span class="lbl">Drag from here</span></div>
+      </div>
+      <div class="feedback" id="fb3"></div>
+      <div class="controls">
+        <button class="btn primary" id="check3" disabled>Check the ladder</button>
+        <button class="btn ghost" id="reset3">Reset</button>
+        <span class="score" id="score3"></span>
+      </div>
+    </div>
+
+    <div id="p3phase2" hidden>
+      <div class="revealnote">You built it right. Now see the gaps: every rate is measured against <b>Medicare&nbsp;=&nbsp;the benchmark (1.0&times;)</b>. Commercial plans pay a multiple above it; Medicaid pays a fraction below.</div>
+      <div class="scalewrap" id="scalewrap"></div>
+      <p class="caveat">Illustrative averages only — actual rates vary widely by service, provider, and local market. The point is the pattern, not the exact number.</p>
+      <div class="followups">
+        <p class="fq">1 &nbsp;Which payer is the benchmark the others are priced against?</p>
+        <div class="opts3" id="fq1"></div>
+        <p class="fq">2 &nbsp;For the same procedure, a hospital is usually paid the most by…</p>
+        <div class="opts3" id="fq2"></div>
+        <div class="feedback" id="fb3b"></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="banner" id="banner">
+    <h3>All three stations complete.</h3>
+    <p>You've tested the facts, matched people to coverage, and mapped the payment ladder. That's the core of both quizzes — nice work.</p>
+  </div>
+
+  <p class="foot">Center for Health Care · Tuck School of Business at Dartmouth</p>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var done=[false,false,false];
+  var tabs=[].slice.call(document.querySelectorAll('.tab'));
+  var panels=[].slice.call(document.querySelectorAll('.panel'));
+  tabs.forEach(function(t){
+    t.addEventListener('click',function(){
+      var i=+t.dataset.tab;
+      tabs.forEach(function(x){x.setAttribute('aria-selected', x===t?'true':'false');});
+      panels.forEach(function(p){p.classList.toggle('active', +p.dataset.panel===i);});
+    });
+  });
+  function markDone(i){
+    if(done[i])return; done[i]=true; tabs[i].classList.add('complete');
+    if(done[0]&&done[1]&&done[2]) document.getElementById('banner').classList.add('show');
+  }
+
+  /* ============ ACTIVITY 1: TWO TRUTHS & A LIE ============ */
+  var ROUNDS=[
+    {seg:'Medicare', s:[
+      'Eligibility starts at age 65, regardless of income.',
+      'Part A is funded mainly by payroll taxes.',
+      'Medicare Advantage enrollment has been shrinking in recent years.'],
+      lie:2, why:'Medicare Advantage has been growing, not shrinking — about 54% of eligible beneficiaries in 2025, with projections near 64% by 2034.'},
+    {seg:'Medicaid', s:[
+      'Medicaid finances roughly 41% of all U.S. births.',
+      'Medicaid reimburses providers at higher rates than Medicare.',
+      'It is jointly funded by the states and the federal government through FMAP.'],
+      lie:1, why:'Medicaid pays the lowest rates of the major payers — below Medicare — which can limit how many providers accept it.'},
+    {seg:'Employer-Sponsored', s:[
+      'It is the single largest source of coverage in the country.',
+      'Premiums paid through work are taxed as ordinary income to the employee.',
+      'Most large employers self-fund and are regulated federally under ERISA.'],
+      lie:1, why:'Employer premiums are NOT taxed as income — that tax exclusion is a large, mostly invisible public subsidy for private coverage.'},
+    {seg:'Individual / Marketplace', s:[
+      'ACA-compliant plans can be denied to people with pre-existing conditions.',
+      'Many enrollees receive income-based premium subsidies.',
+      'Most people buy these plans through HealthCare.gov or a state exchange.'],
+      lie:0, why:'ACA plans are guaranteed issue — coverage cannot be denied or priced up for pre-existing conditions.'},
+    {seg:'The Uninsured', s:[
+      'They are mostly working-age adults.',
+      'Care for the uninsured is entirely free, at no cost to the rest of the system.',
+      'Emergency rooms must stabilize anyone, regardless of ability to pay (EMTALA).'],
+      lie:1, why:'"Uninsured" is not "free" — hospitals absorb uncompensated care, and some of that cost shifts onto insured patients.'},
+    {seg:'Dual-Eligible', s:[
+      'Medicare is the primary payer and Medicaid wraps around it.',
+      'You only need to qualify for Medicare to be a dual-eligible.',
+      'Duals are a small share of enrollees but a large share of spending.'],
+      lie:1, why:'Duals must qualify for BOTH programs — Medicare (age or disability) and Medicaid (low income). Medicaid alone or Medicare alone is not "dual."'},
+    {seg:'The Big Picture', s:[
+      'Most Americans get their coverage through private insurance.',
+      'Commercial insurers set rates with no relationship to Medicare.',
+      'Medicare is often seen as "earned," while Medicaid is seen as "welfare."'],
+      lie:1, why:'Commercial rates are typically set as a multiple of Medicare\u2019s — Medicare is the benchmark the whole market is priced against.'}
+  ];
+  var ri=0, r1correct=0, r1answered=false;
+  var stmtBox=document.getElementById('statements'), fb1=document.getElementById('fb1');
+  function renderTTL(){
+    r1answered=false;
+    document.getElementById('ttlSeg').textContent=ROUNDS[ri].seg;
+    document.getElementById('ttlCount').textContent='Round '+(ri+1)+' of '+ROUNDS.length;
+    fb1.className='feedback'; document.getElementById('next1').disabled=true;
+    stmtBox.innerHTML='';
+    ROUNDS[ri].s.forEach(function(txt,idx){
+      var b=document.createElement('button');
+      b.className='statement';
+      b.innerHTML='<span class="mk">\u2715</span><span>'+txt+'</span>';
+      b.addEventListener('click',function(){ if(r1answered)return; answerTTL(idx,b); });
+      stmtBox.appendChild(b);
+    });
+  }
+  function answerTTL(idx,btn){
+    r1answered=true;
+    var lie=ROUNDS[ri].lie, kids=[].slice.call(stmtBox.children);
+    kids.forEach(function(b,i){ b.disabled=true; if(i===lie)b.classList.add('lie-revealed'); });
+    if(idx===lie){
+      r1correct++;
+      fb1.className='feedback good show';
+      fb1.innerHTML='<b>Correct — that\u2019s the false one.</b> '+ROUNDS[ri].why;
+    } else {
+      btn.classList.add('bad');
+      fb1.className='feedback bad show';
+      fb1.innerHTML='<b>That one\u2019s actually true.</b> The false claim is highlighted in green: '+ROUNDS[ri].why;
+    }
+    document.getElementById('score1').textContent=r1correct+' / '+ROUNDS.length+' correct';
+    document.getElementById('next1').disabled=false;
+    if(ri===ROUNDS.length-1) document.getElementById('next1').textContent='See result';
+  }
+  document.getElementById('next1').addEventListener('click',function(){
+    if(ri<ROUNDS.length-1){ ri++; renderTTL(); }
+    else {
+      fb1.className='feedback good show';
+      fb1.innerHTML='<b>Done — '+r1correct+' of '+ROUNDS.length+'.</b> These are the exact distinctions the quizzes lean on. Start over to hammer the misses.';
+      document.getElementById('next1').disabled=true; markDone(0);
+    }
+  });
+  document.getElementById('reset1').addEventListener('click',function(){
+    ri=0; r1correct=0; document.getElementById('score1').textContent='';
+    document.getElementById('next1').textContent='Next round'; renderTTL();
+  });
+
+  /* ============ ACTIVITY 2: VIGNETTES ============ */
+  var INSURERS=['Medicare','Medicaid','Employer-Sponsored','Individual (Marketplace)','VHA','Tricare','Dual (Medicare + Medicaid)','Uninsured'];
+  var VIGNETTES=[
+    {p:'A 68-year-old who just retired after 40 years of work.',a:'Medicare',
+     why:'Age 65+ qualifies for Medicare regardless of income or work history.'},
+    {p:'A low-income mother and her two young children.',a:'Medicaid',
+     why:'Medicaid is income-based, and children are its single largest group.'},
+    {p:'A software engineer at a 5,000-person tech company.',a:'Employer-Sponsored',
+     why:'Coverage through the job — the single largest coverage source in the country.'},
+    {p:'A self-employed graphic designer, age 42, with no job-based offer.',a:'Individual (Marketplace)',
+     why:'With no employer or public option, she buys directly, usually through the ACA marketplace.'},
+    {p:'An Army veteran who gets all her care at the VA hospital.',a:'VHA',
+     why:'The Veterans Health Administration is both the payer and the provider.'},
+    {p:'An 82-year-old in a nursing home who has spent down her savings.',a:'Dual (Medicare + Medicaid)',
+     why:'Medicare covers her by age; Medicaid kicks in for low income and long-term care — a dual-eligible.'},
+    {p:'A 30-year-old part-time worker in a non-expansion state who can\u2019t afford a plan.',a:'Uninsured',
+     why:'No job-based offer, an eligibility gap, and cost — the typical uninsured profile.'},
+    {p:'The spouse and children of an active-duty soldier.',a:'Tricare',
+     why:'Tricare covers the military community and is funded by the Department of Defense.'}
+  ];
+  var qi=0,q2correct=0,answered=false;
+  var opts=document.getElementById('opts'),fb2=document.getElementById('fb2');
+  function renderVig(){
+    answered=false;
+    document.getElementById('qcount').textContent='Person '+(qi+1)+' of '+VIGNETTES.length;
+    document.getElementById('person').textContent=VIGNETTES[qi].p;
+    fb2.className='feedback'; document.getElementById('next2').disabled=true;
+    opts.innerHTML='';
+    INSURERS.forEach(function(name){
+      var b=document.createElement('button'); b.className='opt'; b.textContent=name;
+      b.addEventListener('click',function(){ if(answered)return; answerVig(name,b); });
+      opts.appendChild(b);
+    });
+  }
+  function answerVig(name,btn){
+    answered=true; var right=VIGNETTES[qi].a;
+    [].slice.call(opts.children).forEach(function(b){ b.disabled=true; if(b.textContent===right)b.classList.add('ok'); });
+    if(name===right){ q2correct++; fb2.className='feedback good show'; fb2.innerHTML='<b>Correct.</b> '+VIGNETTES[qi].why; }
+    else { btn.classList.add('bad'); fb2.className='feedback bad show'; fb2.innerHTML='<b>Not quite — it\u2019s '+right+'.</b> '+VIGNETTES[qi].why; }
+    document.getElementById('score2').textContent=q2correct+' / '+VIGNETTES.length+' correct';
+    document.getElementById('next2').disabled=false;
+    if(qi===VIGNETTES.length-1) document.getElementById('next2').textContent='See result';
+  }
+  document.getElementById('next2').addEventListener('click',function(){
+    if(qi<VIGNETTES.length-1){ qi++; renderVig(); }
+    else { fb2.className='feedback good show';
+      fb2.innerHTML='<b>Done — '+q2correct+' of '+VIGNETTES.length+'.</b> You can match people to their primary insurer. Start over to sharpen the misses.';
+      document.getElementById('next2').disabled=true; markDone(1); }
+  });
+  document.getElementById('reset2').addEventListener('click',function(){
+    qi=0;q2correct=0;document.getElementById('score2').textContent='';
+    document.getElementById('next2').textContent='Next person'; renderVig();
+  });
+
+  /* ============ ACTIVITY 3: PAYMENT LADDER ============ */
+  var PAYERS=[
+    {id:'mcaid',name:'Medicaid',hint:'State-run safety net',rank:0,val:75,bd:'\u2248 below Medicare',color:'#9BC46F'},
+    {id:'mcare',name:'Medicare',hint:'The federal benchmark',rank:1,val:100,bd:'Benchmark \u00b7 1.0\u00d7',color:'#00693E'},
+    {id:'indiv',name:'Individual / Marketplace',hint:'Private, often leaner networks',rank:2,val:150,bd:'\u2248 above Medicare',color:'#2E7D46'},
+    {id:'emp',name:'Employer / Large-group',hint:'Most generous of all payers',rank:3,val:205,bd:'\u2248 a multiple above',color:'#13312A'}
+  ];
+  var fb3=document.getElementById('fb3');
+  var viz=document.getElementById('ladderviz');
+  var payBank=document.getElementById('payBank');
+  var slots=[null,null,null,null];      // index 0 = top rung (pays the most)
+  var bankOrder=[], locked=false, drag=null;
+  function byId(id){ return PAYERS.filter(function(p){return p.id===id;})[0]; }
+  function shuffleBank(){ bankOrder=PAYERS.map(function(p){return p.id;}).sort(function(){return Math.random()-0.5;}); }
+  function makeCard(p){
+    var c=document.createElement('div');
+    c.className='paycard'; c.dataset.id=p.id;
+    c.innerHTML='<span class="pcname">'+p.name+'</span><span class="pchint">'+p.hint+'</span>';
+    c.addEventListener('pointerdown', startDrag);
+    return c;
+  }
+  function render3(){
+    [].forEach.call(viz.querySelectorAll('.rungslot'),function(slot){
+      slot.classList.remove('ok','bad','hot'); slot.innerHTML='';
+      var id=slots[+slot.dataset.slot];
+      if(id){ slot.appendChild(makeCard(byId(id))); }
+      else { var e=document.createElement('span'); e.className='empty'; e.textContent='Drop a payer here'; slot.appendChild(e); }
+    });
+    payBank.querySelectorAll('.paycard').forEach(function(c){c.remove();});
+    bankOrder.forEach(function(id){ if(slots.indexOf(id)===-1) payBank.appendChild(makeCard(byId(id))); });
+    document.getElementById('check3').disabled = (slots.filter(Boolean).length!==PAYERS.length)||locked;
+  }
+  function slotUnder(x,y){
+    if(drag) drag.clone.style.display='none';
+    var t=document.elementFromPoint(x,y);
+    if(drag) drag.clone.style.display='';
+    return t?t.closest('.rungslot'):null;
+  }
+  function startDrag(e){
+    if(locked) return;
+    e.preventDefault();
+    var card=e.currentTarget, rect=card.getBoundingClientRect();
+    var clone=card.cloneNode(true); clone.className='paycard dragclone';
+    clone.style.width=rect.width+'px'; clone.style.left=rect.left+'px'; clone.style.top=rect.top+'px';
+    document.body.appendChild(clone); card.classList.add('dragging');
+    drag={id:card.dataset.id, clone:clone, offx:e.clientX-rect.left, offy:e.clientY-rect.top};
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+  }
+  function onMove(e){
+    if(!drag) return;
+    drag.clone.style.left=(e.clientX-drag.offx)+'px';
+    drag.clone.style.top=(e.clientY-drag.offy)+'px';
+    var s=slotUnder(e.clientX,e.clientY);
+    [].forEach.call(viz.querySelectorAll('.rungslot'),function(x){x.classList.toggle('hot', x===s);});
+  }
+  function onUp(e){
+    window.removeEventListener('pointermove', onMove);
+    window.removeEventListener('pointerup', onUp);
+    if(!drag) return;
+    var s=slotUnder(e.clientX,e.clientY);
+    drag.clone.remove();
+    var id=drag.id, fromIdx=slots.indexOf(id);
+    if(s){
+      var toIdx=+s.dataset.slot, occupant=slots[toIdx];
+      if(fromIdx>-1) slots[fromIdx]=null;
+      if(occupant && occupant!==id && fromIdx>-1){ slots[fromIdx]=occupant; } // swap into vacated slot
+      slots[toIdx]=id;
+    } else if(fromIdx>-1){ slots[fromIdx]=null; } // dropped off-ladder -> back to bank
+    fb3.className='feedback'; document.getElementById('score3').textContent='';
+    drag=null; render3();
+  }
+  function buildScale(){
+    var wrap=document.getElementById('scalewrap'); wrap.innerHTML='';
+    var MAX=220;
+    [PAYERS[0],PAYERS[1],PAYERS[2],PAYERS[3]].forEach(function(p){
+      var row=document.createElement('div'); row.className='barrow';
+      row.innerHTML='<div class="blabel"><span class="bn">'+p.name+'</span><span class="bd">'+p.bd+'</span></div>'+
+        '<div class="bartrack"><div class="barfill" data-w="'+(p.val/MAX*100)+'"><span class="barval">'+p.val+'</span></div></div>';
+      wrap.appendChild(row);
+    });
+    requestAnimationFrame(function(){
+      [].slice.call(wrap.querySelectorAll('.barfill')).forEach(function(f,i){
+        f.style.background=PAYERS[i].color;
+        setTimeout(function(){ f.style.width=f.dataset.w+'%'; }, 60);
+      });
+    });
+  }
+  document.getElementById('check3').addEventListener('click',function(){
+    if(slots.filter(Boolean).length!==PAYERS.length) return;
+    var allRight=true;
+    [].forEach.call(viz.querySelectorAll('.rungslot'),function(slot){
+      var i=+slot.dataset.slot, expected=PAYERS.length-1-i, p=byId(slots[i]);
+      if(p.rank===expected){slot.classList.add('ok');} else {slot.classList.add('bad');allRight=false;}
+    });
+    if(allRight){
+      locked=true;
+      fb3.className='feedback good show';
+      fb3.innerHTML='<b>Exactly right.</b> Medicaid \u2192 Medicare \u2192 Individual \u2192 Employer. Now see how far apart the rungs really are \u2193';
+      document.getElementById('score3').textContent='Ladder correct';
+      document.getElementById('check3').disabled=true;
+      var p2=document.getElementById('p3phase2'); p2.hidden=false; buildScale();
+      p2.scrollIntoView({behavior:'smooth',block:'nearest'});
+    } else {
+      fb3.className='feedback bad show';
+      fb3.innerHTML='<b>Close.</b> Bottom to top it\u2019s <b>Medicaid \u2192 Medicare \u2192 Individual \u2192 Employer</b>: Medicaid sits below the Medicare benchmark, and private rates climb above it. Drag to fix it, then check again.';
+    }
+  });
+  document.getElementById('reset3').addEventListener('click',function(){
+    slots=[null,null,null,null]; locked=false; shuffleBank();
+    fb3.className='feedback'; document.getElementById('score3').textContent='';
+    document.getElementById('p3phase2').hidden=true;
+    fq1done=false; fq2done=false; document.getElementById('fb3b').className='feedback';
+    buildFollow(document.getElementById('fq1'),['Medicaid','Medicare','Employer'],'Medicare',function(ok){ fq1done=true; checkFollowDone(); });
+    buildFollow(document.getElementById('fq2'),['Medicaid','Medicare','Employer'],'Employer',function(ok){ fq2done=true; checkFollowDone(); });
+    render3();
+  });
+
+  /* follow-up questions */
+  var fq1done=false, fq2done=false;
+  function buildFollow(el,options,correct,onAns){
+    el.innerHTML=''; el.removeAttribute('data-done');
+    options.forEach(function(o){
+      var b=document.createElement('button'); b.className='opt'; b.textContent=o;
+      b.addEventListener('click',function(){
+        if(el.dataset.done)return; el.dataset.done='1';
+        [].slice.call(el.children).forEach(function(x){ x.disabled=true; if(x.textContent===correct)x.classList.add('ok'); });
+        if(o!==correct) b.classList.add('bad');
+        onAns(o===correct);
+      });
+      el.appendChild(b);
+    });
+  }
+  function checkFollowDone(){
+    if(fq1done&&fq2done){
+      var fb3b=document.getElementById('fb3b');
+      fb3b.className='feedback good show';
+      fb3b.innerHTML='<b>That\u2019s the anchor idea.</b> Medicare sets the standard; employer/commercial pays the most, and Medicaid the least \u2014 which is why low Medicaid rates can limit provider access. Station complete.';
+      markDone(2);
+    }
+  }
+  buildFollow(document.getElementById('fq1'),['Medicaid','Medicare','Employer'],'Medicare',function(ok){ fq1done=true; checkFollowDone(); });
+  buildFollow(document.getElementById('fq2'),['Medicaid','Medicare','Employer'],'Employer',function(ok){ fq2done=true; checkFollowDone(); });
+
+  /* init */
+  renderTTL(); renderVig(); shuffleBank(); render3();
+})();
+</script>
+</body>
+</html>
